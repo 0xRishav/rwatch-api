@@ -17,7 +17,7 @@ const videoSchema = new Schema(
       required: ["description title is required"],
     },
     isLatest: {
-      type: isLatest,
+      type: Boolean,
       required: ["isLatest title is required"],
     },
     videoId: {
@@ -33,3 +33,5 @@ const videoSchema = new Schema(
 );
 
 const Video = mongoose.model("Video", videoSchema);
+
+module.exports = Video;
