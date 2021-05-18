@@ -21,7 +21,7 @@ const userSchema = new Schema(
     likedVideos: [
       {
         type: Schema.Types.ObjectId,
-        ref: "LikedVideo",
+        ref: "Video",
       },
     ],
     playlists: [
@@ -33,7 +33,7 @@ const userSchema = new Schema(
     history: [
       {
         type: Schema.Types.ObjectId,
-        ref: "HistoryVideo",
+        ref: "Video",
       },
     ],
   },
