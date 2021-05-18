@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
+require("dotenv").config();
 
-const uri =
-  "mongodb+srv://rishavbharti:CdBFYLrAP1HsqgPN@rwatch.67eqj.mongodb.net/RWatch";
+const uri = process.env.URI_KEY;
 
 mongoose
   .connect(uri, {
