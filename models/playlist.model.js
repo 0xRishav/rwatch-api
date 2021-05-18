@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const { Schema } = mongoose;
 
-const playlistSchema = new Schema(
+const playlistSchema = new mongoose.Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -26,5 +26,5 @@ const playlistSchema = new Schema(
   { timestamps: true }
 );
 
-const Playlist = model("LikedVideo", playlistSchema);
+const Playlist = mongoose.model("Playlist", playlistSchema);
 module.exports = Playlist;
