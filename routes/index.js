@@ -55,5 +55,3 @@ router.post(
 
 module.exports = router;
 
-// 60a393b44c0fde11d23d57fe
-// 60a394a0268c8912df1e11e7
