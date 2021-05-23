@@ -19,7 +19,7 @@ module.exports.addToHistory = async (req, res) => {
     const user = await userDb.findById(userId);
     const history = user.history;
     if (!history.some((video) => video == videoId)) {
-      await user.history.push(videoId);
+      history.push(videoId);
       await user.save();
     } else {
       return res
@@ -59,19 +59,13 @@ module.exports.removeFromHistory = async (req, res) => {
 };
 
 module.exports.resetHistory = async (req, res) => {
-  console.log("inside history controller")
   const { userId } = req.params;
   try {
     let user = await userDb.findById(userId);
-    console.log("found user", user.email);
     user.history = [];
-    console.log("updated history", user.history);
     await user.save();
 
-    console.log("saved user", user.history);
-
     const data = await user.execPopulate("history");
-    console.log("populated data");
     return res.status(200).json({ success: true, data: [...data.history] });
   } catch (error) {
     return res

@@ -9,7 +9,7 @@ const historyVideoSchema = new Schema(
       ref: "User",
     },
     historyVideo: {
-      video: mongoose.Types.ObjectId,
+      video: Schema.Types.ObjectId,
       ref: "Video",
     },
   },

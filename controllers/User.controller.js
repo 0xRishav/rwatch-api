@@ -2,10 +2,10 @@ const userDb = require("../models/user.model");
 
 module.exports.signUpUser = async (req, res) => {
   const { name, email, password } = req.body;
-  let user = null;
+  let user = await userDb.findOne({ email: email });
   try {
-    if (await userDb.findOne({ email: email })) {
-      return res.status(208).json({
+    if (user) {
+      return res.status(409).json({
         success: false,
         message: "This email is already registered",
       });

@@ -5,7 +5,6 @@ module.exports.getAllPlaylists = async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await userDb.findById(userId);
-    console.log("usr Playlist", user.playlists);
     const { playlists } = await (
       await userDb.findById(userId)
     ).execPopulate({ path: "playlists", populate: { path: "videos" } });
@@ -32,7 +31,10 @@ module.exports.addNewPlaylist = async (req, res) => {
     const user = await userDb.findById(userId);
     user.playlists.push(playlist._id);
     await user.save();
-    const { playlists } = await user.execPopulate({ path: "playlists", populate: { path: "videos" } });
+    const { playlists } = await user.execPopulate({
+      path: "playlists",
+      populate: { path: "videos" },
+    });
     const newPlaylist = playlists.filter((playlist) => playlist.active);
 
     if (playlist) {
@@ -82,7 +84,7 @@ module.exports.addVideoToPlaylist = async (req, res) => {
     console.log("PLAYLIST", playlist);
     if (!playlist.videos.includes(videoId)) {
       playlist.videos.push(videoId);
-      playlist.save();
+      await playlist.save();
     } else {
       return res.status(400).json({
         success: false,

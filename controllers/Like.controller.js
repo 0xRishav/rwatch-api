@@ -19,7 +19,7 @@ module.exports.addToLikedVideos = async (req, res) => {
     const user = await userDb.findById(userId);
     const likedVideos = user.likedVideos;
     if (!likedVideos.some((video) => video == videoId)) {
-      await user.likedVideos.push(videoId);
+      user.likedVideos.push(videoId);
       await user.save();
     } else {
       return res
