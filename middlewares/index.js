@@ -5,7 +5,6 @@ const { ACCESS_TOKEN_SECRET } = process.env;
 
 exports.checkAuth = async (req, res, next) => {
   const token = req.headers["x-auth-token"];
-  console.log("TOken", token);
   if (!token) {
     return res.status(403).json({ message: "Access denied, token missing!" });
   } else {

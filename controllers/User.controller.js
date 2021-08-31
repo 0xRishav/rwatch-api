@@ -68,7 +68,6 @@ module.exports.signInUser = async (req, res) => {
       if (user) {
         if (bcrypt.compare(password, user.password)) {
           const accessToken = await user.createAccessToken();
-          console.log(accessToken);
           return res.status(200).json({
             message: "SignIn successfull",
             data: { accessToken, user },
