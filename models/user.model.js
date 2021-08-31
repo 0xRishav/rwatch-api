@@ -43,6 +43,19 @@ const userSchema = new Schema(
   }
 );
 
+userSchema.methods = {
+  createAccessToken: async function () {
+    try {
+      let user = this;
+      let accessToken = jwt.sign({ id: user._id }, ACCESS_TOKEN_SECRET);
+      return accessToken;
+    } catch (err) {
+      console.log(err);
+      return;
+    }
+  },
+};
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

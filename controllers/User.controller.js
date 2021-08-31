@@ -52,11 +52,16 @@ module.exports.signInUser = async (req, res) => {
     ) {
       user = await userDb.findOne({ email: email });
       if (user) {
+        const populatedUser = userDb
+          .findById(user._id)
+          .populate("likedVideos")
+          .populate("history")
+          .popuate({ path: "playlists", populate: { path: "videos" } });
         if (user.password === password) {
           return res.status(200).json({
             success: true,
             message: "Sign In successfull",
-            user,
+            populatedUser,
           });
         } else {
           return res.status(401).json({
