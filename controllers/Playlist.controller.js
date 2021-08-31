@@ -2,12 +2,11 @@ const playlistDb = require("../models/playlist.model");
 const userDb = require("../models/user.model");
 
 module.exports.getAllPlaylists = async (req, res) => {
-  const { userId } = req.params;
+  const user = req.user;
   try {
-    const user = await userDb.findById(userId);
-    const { playlists } = await (
-      await userDb.findById(userId)
-    ).execPopulate({ path: "playlists", populate: { path: "videos" } });
+    const { playlists } = await userDb
+      .findById(user._id)
+      .populate({ path: "playlists", populate: "videos" });
     const newPlaylist = playlists.filter((playlist) => playlist.active);
 
     return res.status(200).json({ success: true, data: [...newPlaylist] });
@@ -20,29 +19,30 @@ module.exports.getAllPlaylists = async (req, res) => {
 };
 
 module.exports.addNewPlaylist = async (req, res) => {
-  const { userId } = req.params;
+  let { user } = req;
   const { name } = req.body;
   try {
     const playlist = await playlistDb.create({
       name: name,
-      user: userId,
+      user: user._id,
       active: true,
     });
-    const user = await userDb.findById(userId);
     user.playlists.push(playlist._id);
     await user.save();
-    const { playlists } = await user.execPopulate({
-      path: "playlists",
-      populate: { path: "videos" },
-    });
-    const newPlaylist = playlists.filter((playlist) => playlist.active);
 
     if (playlist) {
-      return res.status(200).json({
-        success: true,
-        message: "playlist added successfully",
-        data: [...newPlaylist],
-      });
+      const populatedUser = await userDb
+        .findById(user._id)
+        .populate("likedVideos")
+        .populate("history")
+        .populate({ path: "playlists", populate: { path: "videos" } });
+      if (populatedUser) {
+        return res.status(200).json({ success: true, data: populatedUser });
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, message: "User not autherised" });
+      }
     } else {
       return res
         .status(500)
@@ -58,15 +58,35 @@ module.exports.addNewPlaylist = async (req, res) => {
 };
 
 module.exports.deletePlaylist = async (req, res) => {
-  const { playlistId, userId } = req.params;
+  const { playlistId } = req.params;
+  const user = req.user;
   try {
     const playlist = await playlistDb.findById(playlistId);
     const updatedPlaylist = await playlist.updateOne({ active: false });
     const { playlists } = await (
-      await userDb.findById(userId)
+      await userDb.findById(user._id)
     ).execPopulate({ path: "playlists", populate: { path: "videos" } });
     const newPlaylist = playlists.filter((playlist) => playlist.active);
-    return res.status(200).json({ success: true, data: [...newPlaylist] });
+    user.playlists = newPlaylist;
+    await user.save();
+    if (updatedPlaylist) {
+      const populatedUser = await userDb
+        .findById(user._id)
+        .populate("likedVideos")
+        .populate("history")
+        .populate({ path: "playlists", populate: { path: "videos" } });
+      if (populatedUser) {
+        return res.status(200).json({ success: true, data: populatedUser });
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, message: "User not autherised" });
+      }
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "error in deleting the playlist" });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -78,10 +98,10 @@ module.exports.deletePlaylist = async (req, res) => {
 
 module.exports.addVideoToPlaylist = async (req, res) => {
   const { playlistId, videoId } = req.params;
+  const user = req.user;
   try {
     const playlist = await playlistDb.findById(playlistId);
     const userId = playlist.user;
-    console.log("PLAYLIST", playlist);
     if (!playlist.videos.includes(videoId)) {
       playlist.videos.push(videoId);
       await playlist.save();
@@ -91,11 +111,18 @@ module.exports.addVideoToPlaylist = async (req, res) => {
         message: "video already exists in playlist",
       });
     }
-    const { playlists } = await (
-      await userDb.findById(userId)
-    ).execPopulate({ path: "playlists", populate: { path: "videos" } });
-    const newPlaylist = playlists.filter((playlist) => playlist.active);
-    return res.json({ success: true, data: [...newPlaylist] });
+    const populatedUser = await userDb
+      .findById(user._id)
+      .populate("likedVideos")
+      .populate("history")
+      .populate({ path: "playlists", populate: { path: "videos" } });
+    if (populatedUser) {
+      return res.status(200).json({ success: true, data: populatedUser });
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not autherised" });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -107,21 +134,25 @@ module.exports.addVideoToPlaylist = async (req, res) => {
 
 module.exports.removeVideoFromPlaylist = async (req, res) => {
   const { playlistId, videoId } = req.params;
+  const user = req.user;
   try {
     const playlist = await playlistDb.findById(playlistId);
     const userId = playlist.user;
     await playlistDb.findByIdAndUpdate(playlistId, {
       $pull: { videos: videoId },
     });
-    const { playlists } = await (
-      await userDb.findById(userId)
-    ).execPopulate({ path: "playlists", populate: { path: "videos" } });
-    const newPlaylist = playlists.filter((playlist) => playlist.active);
-    return res.status(201).json({
-      sucess: true,
-      data: [...newPlaylist],
-      message: "video removed successfully",
-    });
+    const populatedUser = await userDb
+      .findById(user._id)
+      .populate("likedVideos")
+      .populate("history")
+      .populate({ path: "playlists", populate: { path: "videos" } });
+    if (populatedUser) {
+      return res.status(200).json({ success: true, data: populatedUser });
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not autherised" });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({

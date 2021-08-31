@@ -1,6 +1,6 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const User = require("../models/user.model");
 const { ACCESS_TOKEN_SECRET } = process.env;
 
 exports.checkAuth = async (req, res, next) => {
