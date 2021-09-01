@@ -15,7 +15,7 @@ const historyController = require("../controllers/history.controller");
 const playlistController = require("../controllers/Playlist.controller");
 
 // Video router
-router.get("/video", middlewrares.checkAuth, videoController.getAllVideos);
+router.get("/video", videoController.getAllVideos);
 router.get(
   "/video/:videoId",
   middlewrares.checkAuth,
