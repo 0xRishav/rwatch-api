@@ -1,11 +1,21 @@
 const userDb = require("../models/user.model");
 
 module.exports.getHistory = async (req, res) => {
-  const { userId } = req.params;
+  const user = req.user;
   try {
-    const user = await userDb.findById(userId);
-    const data = await user.execPopulate("history");
-    return res.status(200).json({ success: true, data: [...data.history] });
+    const populatedUser = await userDb
+      .findById(user._id)
+      .populate("history")
+      .populate("history")
+      .populate({ path: "playlists", populate: { path: "videos" } });
+
+    if (populatedUser) {
+      return res.status(200).json({ success: true, data: populatedUser });
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not autherised" });
+    }
   } catch (error) {
     return res
       .status(500)
@@ -14,21 +24,30 @@ module.exports.getHistory = async (req, res) => {
 };
 
 module.exports.addToHistory = async (req, res) => {
-  const { userId, videoId } = req.params;
+  const { videoId } = req.params;
+  let user = req.user;
   try {
-    const user = await userDb.findById(userId);
     const history = user.history;
     if (!history.some((video) => video == videoId)) {
       history.push(videoId);
       await user.save();
+      const populatedUser = await userDb
+        .findById(user._id)
+        .populate("history")
+        .populate("history")
+        .populate({ path: "playlists", populate: { path: "videos" } });
+      if (populatedUser) {
+        return res.status(200).json({ success: true, data: populatedUser });
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, message: "User not autherised" });
+      }
     } else {
       return res
         .status(400)
         .json({ success: false, message: "video already liked" });
     }
-
-    const data = await user.execPopulate("history");
-    return res.status(200).json({ success: true, data: [...data.history] });
   } catch (error) {
     return res
       .status(500)
@@ -37,20 +56,28 @@ module.exports.addToHistory = async (req, res) => {
 };
 
 module.exports.removeFromHistory = async (req, res) => {
-  const { userId, videoId } = req.params;
+  const { videoId } = req.params;
+  let user = req.user;
   try {
-    let user = await userDb.findById(userId);
     if (user.history.includes(videoId)) {
       await user.update({ $pull: { history: videoId } });
+      const populatedUser = await userDb
+        .findById(user._id)
+        .populate("likedVideos")
+        .populate("history")
+        .populate({ path: "playlists", populate: { path: "videos" } });
+      if (populatedUser) {
+        return res.status(200).json({ success: true, data: populatedUser });
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, message: "User not autherised" });
+      }
     } else {
       return res
         .status(400)
-        .json({ success: false, message: "video is not liked" });
+        .json({ success: false, message: "video never watched" });
     }
-
-    const newUser = await userDb.findById(userId);
-    const data = await newUser.execPopulate("history");
-    return res.status(200).json({ success: true, data: [...data.history] });
   } catch (error) {
     return res
       .status(500)
@@ -59,14 +86,22 @@ module.exports.removeFromHistory = async (req, res) => {
 };
 
 module.exports.resetHistory = async (req, res) => {
-  const { userId } = req.params;
+  let user = req.user;
   try {
-    let user = await userDb.findById(userId);
     user.history = [];
     await user.save();
-
-    const data = await user.execPopulate("history");
-    return res.status(200).json({ success: true, data: [...data.history] });
+    const populatedUser = await userDb
+      .findById(user._id)
+      .populate("history")
+      .populate("history")
+      .populate({ path: "playlists", populate: { path: "videos" } });
+    if (populatedUser) {
+      return res.status(200).json({ success: true, data: populatedUser });
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not autherised" });
+    }
   } catch (error) {
     return res
       .status(500)

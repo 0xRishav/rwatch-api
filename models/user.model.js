@@ -1,5 +1,9 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 require("mongoose-type-email");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { ACCESS_TOKEN_SECRET } = process.env;
 
 const { Schema } = mongoose;
 
@@ -42,6 +46,19 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+userSchema.methods = {
+  createAccessToken: async function () {
+    try {
+      let user = this;
+      let accessToken = jwt.sign({ id: user._id }, ACCESS_TOKEN_SECRET);
+      return accessToken;
+    } catch (err) {
+      console.log(err);
+      return;
+    }
+  },
+};
 
 const User = mongoose.model("User", userSchema);
 

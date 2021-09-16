@@ -20,7 +20,7 @@ module.exports.getAllVideos = async (req, res) => {
 module.exports.getVideoById = async (req, res) => {
   const { videoId } = req.params;
   try {
-    const video = videodb.findById(videoId);
+    const video = await videodb.findById(videoId);
     if (video) {
       return res.status(200).json({ success: true, video });
     } else {
